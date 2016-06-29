@@ -5,8 +5,8 @@ var app = express();
 
 app.set('port',process.env.PORT || 3000);
 
-app.get('/',function(req,res){ 
-	res.send('Express Works This Time');
+app.get('/',function(req,res){ //when port 3000 is requested send back this
+	res.send('Express Works This Time shabba');
 });
 
 app.listen(app.get('port'),function(){ //listen on port for instructions 
