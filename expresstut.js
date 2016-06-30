@@ -90,10 +90,12 @@ app.get('/file-upload',function(req,res){
 });
 
 
-app.get('/file-upload/:year/:month',
+app.post('/file-upload/:year/:month',
 	function(req,res){
+
 		var form = new formidable.IncomingForm();
 		form.parse(req, function(err,fields,file){
+			console.log("Working...");
 			if (err)
 				return res.redirect(303,'/error');
 
@@ -104,10 +106,76 @@ app.get('/file-upload/:year/:month',
 	});
 
 
+//setting up cookie
+app.get('/cookie',function(req,res){
+	res.cookie('username','Derek',{expire:new Date() + 999}).send('username has value of Derek');
+});
+
+app.get('/listcookies',function(req,res){
+	console.log("Cookies:",req.cookies);
+	res.send('Look in the console for cookies');
+});
+
+app.get('/deletecookie',function(req,res){
+	res.clearCookie('username');
+	res.send('username Cookie Deleted');
+})
 
 
 
 
+var session = require('express-session');
+
+var parseurl = require('parseurl');
+
+app.use(session({
+	resave:false, //only want to save to session store if save has been made
+	saveUnintialized: true, //store session information if new
+	secret: credentials.cookieSecret,
+}));
+
+//more middleware
+app.use(function(req,res,next){
+	var views = req.session.views;
+
+	if(!views){
+		views = req.session.views = {};
+	}
+	var pathname = parseurl(req).pathname;
+	views[pathname] = (views[pathname] || 0) +1;
+	next();//always put next in middleware to continue down pipeline/code to finish off 
+});
+
+
+app.get('/viewcount',function(req,res,next){
+	res.send('You view this page' + req.session.views['/viewcount'] + ' times');
+});
+
+var fs = require("fs");
+app.get('/readfile',function(req,res, next){
+	fs.readFile('./public/randomfile.txt',function(err,data){
+		if (err){
+			return console.error(err);
+			}
+		res.send("the File: "+ data.toString());
+	})
+})
+
+app.get('/writefile',function(req,res,next){
+	fs.writeFile('./public/randomfile2.txt',
+		'More random text',function(err){
+			if(err){
+				return console.error(err);
+			}
+		});
+	fs.readFile('./public/randomfile2.txt',
+		function(err,data){
+			if(err){
+				return console.error(err);
+			}
+		res.send("The File" + data.toString());	
+		});
+});
 
 
 
