@@ -12,6 +12,13 @@ app.set('view engine','handlebars');
 
 //More Imports Here
 
+app.use(require('body-parser').urlencoded({
+	extended: true}));
+
+
+var formidable = require('formidable');
+var credentials = require('./credentials.js');
+app.use(require('cookie-parser')(credentials.cookieSecret));
 
 
 app.set('port',process.env.PORT || 3000);
@@ -49,6 +56,61 @@ app.get('/about',function(req,res){ //when port 3000 is requested send back this
 
 });
 
+
+
+app.get('/contact',function(req,res){
+	res.render('contact',{csrf:'CSRF Token Here'});
+});
+
+
+app.get('/thankyou',function(req,res){
+	res.render('thankyou');
+});
+
+
+app.post('/process',function(req,res){
+	console.log('Form' + req.query.form);
+	console.log('CSRF Token:' + req.body._csrf);
+	console.log('Email' + req.body.email);
+	console.log('Question' + req.body.ques);
+	res.redirect(303,'/thankyou');
+});
+
+
+app.listen(app.get('port'),function(){ //listen on port for instructions 
+	console.log("Express started on http://localhost:"+ app.get('port') + "press Ctrl-C to terminate");
+});
+
+
+app.get('/file-upload',function(req,res){
+	var now = new Date();
+	res.render('file-upload',{
+		year: now.getFullYear(),
+		month: now.getMonth()});
+});
+
+
+app.get('/file-upload/:year/:month',
+	function(req,res){
+		var form = new formidable.IncomingForm();
+		form.parse(req, function(err,fields,file){
+			if (err)
+				return res.redirect(303,'/error');
+
+			console.log('Recieved File');
+			console.log(file);
+			res.redirect(303,'/thankyou');
+		});
+	});
+
+
+
+
+
+
+
+
+
 //app use examples are examples of middleware
 app.use(function(req,res){
 	res.type('text/html');
@@ -63,9 +125,6 @@ app.use(function(err,req,res,next){
 	res.render('500');
 });
 
-app.listen(app.get('port'),function(){ //listen on port for instructions 
-	console.log("Express started on http://localhost:"+ app.get('port') + "press Ctrl-C to terminate");
-});
 
 
 
